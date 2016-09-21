@@ -159,6 +159,9 @@ void TebLocalPlannerROS::initialize(std::string name, tf::TransformListener* tf,
         
     // setup callback for custom obstacles
     custom_obst_sub_ = nh.subscribe("obstacles", 1, &TebLocalPlannerROS::customObstacleCB, this);
+
+    // setpoint car setpoint publisher
+    setpoint_pub_ = nh.advertise<rr_base_car_msgs::Setpoint>("car_setpoint", 1);
     
     // set initialized flag
     initialized_ = true;
@@ -382,6 +385,16 @@ bool TebLocalPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   visualization_->publishObstacles(obstacles_);
   visualization_->publishViaPoints(via_points_);
   visualization_->publishGlobalPlan(global_plan_);
+  
+  rr_base_car_msgs::Setpoint setpoint;
+  if (!planner_->getSetpointCommand(setpoint)) {
+    planner_->clearPlanner();
+    ROS_WARN("TebLocalPlannerROS: setpoint command invalid. Resetting planner...");
+    return false;
+  }
+
+  setpoint_pub_.publish(setpoint);
+
   return true;
 }
 
