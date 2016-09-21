@@ -829,6 +829,33 @@ bool TebOptimalPlanner::getVelocityCommand(double& v, double& omega) const
   return true;
 }
 
+bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint) const
+{ 
+  ROS_INFO_STREAM("teb size = " << teb_.sizePoses());
+
+  if (teb_.sizePoses() < 5) {
+    ROS_ERROR("TebOptimalPlanner::getSetpointCommand(): The trajectory contains less than 2 poses. Make sure to init and optimize/plan the trajectory fist.");
+    setpoint = rr_base_car_msgs::Setpoint();
+    return false;
+  }
+
+  double dt = teb_.TimeDiff(0) + teb_.TimeDiff(1) + teb_.TimeDiff(2) + teb_.TimeDiff(3);
+  if (dt <= 0) {
+      ROS_ERROR("TebOptimalPlanner::getSetpointCommand() - timediff<=0 is invalid!");
+      setpoint = rr_base_car_msgs::Setpoint();
+      return false;
+  }
+  
+  double v, omega;
+  extractVelocity(teb_.Pose(0), teb_.Pose(4), dt, v, omega);
+  setpoint.vel = v;
+  setpoint.pos_x = teb_.Pose(4).x();
+  setpoint.pos_y = teb_.Pose(4).y();
+  setpoint.yaw_angle = teb_.Pose(4).theta();
+
+  return true;
+}
+
 void TebOptimalPlanner::getVelocityProfile(std::vector<geometry_msgs::Twist>& velocity_profile) const
 {
   int n = (int) teb_.sizePoses();

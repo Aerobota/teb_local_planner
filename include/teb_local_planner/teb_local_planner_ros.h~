@@ -355,8 +355,6 @@ private:
   ros::Subscriber custom_obst_sub_; //!< Subscriber for custom obstacles received via a ObstacleMsg.
   boost::mutex custom_obst_mutex_; //!< Mutex that locks the obstacle array (multi-threaded)
   ObstacleMsg custom_obstacle_msg_; //!< Copy of the most recent obstacle message
-
-  ros::Publisher setpoint_pub_;
   
   PoseSE2 robot_pose_; //!< Store current robot pose
   PoseSE2 robot_goal_; //!< Store current robot goal
