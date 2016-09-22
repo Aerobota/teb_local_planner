@@ -39,6 +39,7 @@
 #include <teb_local_planner/teb_local_planner_ros.h>
 
 #include <tf_conversions/tf_eigen.h>
+#include <rr_base_car_msgs/SetpointStamped.h>
 
 #include <boost/algorithm/string.hpp>
 
@@ -161,7 +162,7 @@ void TebLocalPlannerROS::initialize(std::string name, tf::TransformListener* tf,
     custom_obst_sub_ = nh.subscribe("obstacles", 1, &TebLocalPlannerROS::customObstacleCB, this);
 
     // setpoint car setpoint publisher
-    setpoint_pub_ = nh.advertise<rr_base_car_msgs::Setpoint>("car_setpoint", 1);
+    setpoint_pub_ = nh.advertise<rr_base_car_msgs::SetpointStamped>("car_setpoint", 1);
     
     // set initialized flag
     initialized_ = true;
@@ -386,14 +387,16 @@ bool TebLocalPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   visualization_->publishViaPoints(via_points_);
   visualization_->publishGlobalPlan(global_plan_);
   
-  rr_base_car_msgs::Setpoint setpoint;
-  if (!planner_->getSetpointCommand(setpoint)) {
+  rr_base_car_msgs::SetpointStamped setpoint_stamped;
+  if (!planner_->getSetpointCommand(setpoint_stamped.setpoint)) {
     planner_->clearPlanner();
     ROS_WARN("TebLocalPlannerROS: setpoint command invalid. Resetting planner...");
     return false;
   }
-
-  setpoint_pub_.publish(setpoint);
+  
+  setpoint_stamped.header.frame_id = "/world_ned"; //@TODO: should be a rosparam.
+  setpoint_stamped.header.stamp = ros::Time::now();
+  setpoint_pub_.publish(setpoint_stamped);
 
   return true;
 }
