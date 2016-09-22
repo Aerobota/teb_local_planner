@@ -20,7 +20,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   visualization_msgs
   rr_base_car_msgs
-  rr_common_math
 )
 message(STATUS "System: ${CMAKE_SYSTEM}")
 ## System dependencies are found with CMake's conventions
@@ -160,7 +159,6 @@ catkin_package(
 	tf_conversions
 	visualization_msgs
     rr_base_car_msgs
-    rr_common_math
   DEPENDS Eigen3 SuiteSparse G2O
 )
 

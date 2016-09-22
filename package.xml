@@ -39,7 +39,6 @@
   <build_depend>tf_conversions</build_depend>
   <build_depend>visualization_msgs</build_depend>
   <build_depend>rr_base_car_msgs</build_depend>
-  <build_depend>rr_common_math</build_depend>
 
   <run_depend>base_local_planner</run_depend>
   <run_depend>costmap_2d</run_depend>
@@ -58,7 +57,6 @@
   <run_depend>tf_conversions</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>rr_base_car_msgs</run_depend>
-  <run_depend>rr_common_math</run_depend>
 
   <export>
 	<nav_core plugin="${prefix}/teb_local_planner_plugin.xml"/>

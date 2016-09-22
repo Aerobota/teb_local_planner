@@ -37,7 +37,6 @@
  *********************************************************************/
 
 #include <teb_local_planner/optimal_planner.h>
-#include <rr_common_math/math.hpp>
 
 namespace teb_local_planner
 {
