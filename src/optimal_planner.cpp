@@ -37,7 +37,7 @@
  *********************************************************************/
 
 #include <teb_local_planner/optimal_planner.h>
-
+#include <rr_common_math/math.hpp>
 
 namespace teb_local_planner
 {
@@ -831,28 +831,39 @@ bool TebOptimalPlanner::getVelocityCommand(double& v, double& omega) const
 
 bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint) const
 { 
-  ROS_INFO_STREAM("teb size = " << teb_.sizePoses());
-
-  if (teb_.sizePoses() < 5) {
+  if (teb_.sizePoses() < 2) {
     ROS_ERROR("TebOptimalPlanner::getSetpointCommand(): The trajectory contains less than 2 poses. Make sure to init and optimize/plan the trajectory fist.");
     setpoint = rr_base_car_msgs::Setpoint();
     return false;
   }
-
-  double dt = teb_.TimeDiff(0) + teb_.TimeDiff(1) + teb_.TimeDiff(2) + teb_.TimeDiff(3);
-  if (dt <= 0) {
+  
+  double t = 0.0;
+  int pre_vel_sign = 0;
+  for(int i=1; i < teb_.sizePoses(); ++i) {
+    double dt = teb_.TimeDiff(i-1);
+    if (dt <= 0) {
       ROS_ERROR("TebOptimalPlanner::getSetpointCommand() - timediff<=0 is invalid!");
       setpoint = rr_base_car_msgs::Setpoint();
       return false;
+    }
+    
+    double v, omega;
+    extractVelocity(teb_.Pose(i-1), teb_.Pose(i), dt, v, omega);
+    ROS_INFO_STREAM("vel = " << v);
+    
+    const int vel_sign = g2o::sign(v);
+    if(pre_vel_sign && pre_vel_sign != vel_sign) {
+      setpoint.vel = v;
+      setpoint.pos_x = teb_.Pose(i).x();
+      setpoint.pos_y = teb_.Pose(i).y();
+      setpoint.yaw_angle = teb_.Pose(i).theta();
+
+      return true;
+    }
+
+    pre_vel_sign = vel_sign;
   }
   
-  double v, omega;
-  extractVelocity(teb_.Pose(0), teb_.Pose(4), dt, v, omega);
-  setpoint.vel = v;
-  setpoint.pos_x = teb_.Pose(4).x();
-  setpoint.pos_y = teb_.Pose(4).y();
-  setpoint.yaw_angle = teb_.Pose(4).theta();
-
   return true;
 }
 
