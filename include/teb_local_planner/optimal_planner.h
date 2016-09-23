@@ -214,7 +214,7 @@ public:
    * @param[out] a car setpoint
    * @return \c true if command is valid, \c false otherwise
    */
-  virtual bool getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint) const;
+  virtual bool getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint &setpoint) const;
   
   /**
    * @brief Optimize a previously initialized trajectory (actual TEB optimization loop).

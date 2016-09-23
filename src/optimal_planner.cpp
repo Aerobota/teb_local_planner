@@ -828,7 +828,7 @@ bool TebOptimalPlanner::getVelocityCommand(double& v, double& omega) const
   return true;
 }
 
-bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint) const
+bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint &setpoint) const
 { 
   if (teb_.sizePoses() < 2) {
     ROS_ERROR("TebOptimalPlanner::getSetpointCommand(): The trajectory contains less than 2 poses. Make sure to init and optimize/plan the trajectory fist.");
@@ -845,24 +845,36 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
       setpoint = rr_base_car_msgs::Setpoint();
       return false;
     }
-    
-    double v, omega;
-    extractVelocity(teb_.Pose(i-1), teb_.Pose(i), dt, v, omega);
-    ROS_INFO_STREAM("vel = " << v);
-    
-    const int vel_sign = g2o::sign(v);
-    if(pre_vel_sign && pre_vel_sign != vel_sign) {
-      setpoint.vel = v;
-      setpoint.pos_x = teb_.Pose(i).x();
-      setpoint.pos_y = teb_.Pose(i).y();
-      setpoint.yaw_angle = teb_.Pose(i).theta();
 
-      return true;
+    t += dt;
+    
+    Eigen::Vector2d dpos = teb_.Pose(i).position() - teb_.Pose(i-1).position();
+    Eigen::Vector2d conf1dir(cos(teb_.Pose(i-1).theta()), sin(teb_.Pose(i-1).theta()));
+    const int vel_sign = g2o::sign(dpos.dot(conf1dir));
+    Eigen::Vector2d goal_error = teb_.Pose(i).position() - robot_pose.position();
+        
+    if((pre_vel_sign && pre_vel_sign != vel_sign && goal_error.norm() > 0.15) || goal_error.norm() > 0.3) {
+        if(pre_vel_sign && pre_vel_sign != vel_sign && goal_error.norm() > 0.15) {
+            ROS_INFO_STREAM("vel_sign is switched: " << vel_sign);
+        }
+
+        //const int control_sign = fabs(g2o::normalize_theta(atan2(goal_error.y(), goal_error.x()) - robot_pose.theta())) < M_PI/2 ? 1 : -1;
+        Eigen::Vector2d conf2dir(cos(robot_pose.theta()), sin(robot_pose.theta()));
+        setpoint.vel = g2o::sign(goal_error.dot(conf2dir)) * goal_error.norm()/t;
+        setpoint.pos_x = teb_.Pose(i).x();
+        setpoint.pos_y = teb_.Pose(i).y();
+        setpoint.yaw_angle = teb_.Pose(i).theta();
+
+        return true;
     }
-
+    
     pre_vel_sign = vel_sign;
   }
   
+  setpoint.vel = 0.0;
+  setpoint.pos_x = teb_.Pose(teb_.sizePoses()-1).x();
+  setpoint.pos_y = teb_.Pose(teb_.sizePoses()-1).y();
+  setpoint.yaw_angle = teb_.Pose(teb_.sizePoses()-1).theta();
   return true;
 }
 
