@@ -835,11 +835,17 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
     setpoint = rr_base_car_msgs::Setpoint();
     return false;
   }
+    
+  const double lookahead_dist = 0.6;
+  ROS_INFO_STREAM("teb size = " << teb_.sizePoses());
   
-  double t = 0.0;
-  int pre_vel_sign = 0;
-  for(int i=1; i < teb_.sizePoses(); ++i) {
-    double dt = teb_.TimeDiff(i-1);
+  double dist = 0.0;
+  double sum_dt = 0.0;
+  uint8_t pre_vel_sign = 0;
+  for (std::size_t i=1; i < teb_.sizePoses()-1; ++i) {
+    dist += ( teb_.Pose(i).position() - teb_.Pose(i-1).position() ).norm();
+    double dt = teb_.TimeDiff(i) + teb_.TimeDiff(i-1);
+    
     if (dt <= 0) {
       ROS_ERROR("TebOptimalPlanner::getSetpointCommand() - timediff<=0 is invalid!");
       setpoint = rr_base_car_msgs::Setpoint();
@@ -851,18 +857,29 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
     ROS_INFO_STREAM("vel = " << v);
     
     const int vel_sign = g2o::sign(v);
-    if(pre_vel_sign && pre_vel_sign != vel_sign) {
-      setpoint.vel = v;
-      setpoint.pos_x = teb_.Pose(i).x();
-      setpoint.pos_y = teb_.Pose(i).y();
-      setpoint.yaw_angle = teb_.Pose(i).theta();
-
-      return true;
+    if((pre_vel_sign && pre_vel_sign != vel_sign) && dist > 1.0 || dist >= lookahead_dist) {
+        extractVelocity(teb_.Pose(0), teb_.Pose(i), sum_dt, v, omega);
+        
+        setpoint.vel = v;
+        setpoint.pos_x = teb_.Pose(i).x();
+        setpoint.pos_y = teb_.Pose(i).y();
+        setpoint.yaw_angle = teb_.Pose(i).theta();
+        ROS_INFO("publish setpoint");
+        return true;
     }
-
+    
     pre_vel_sign = vel_sign;
+    
+    sum_dt += dt;
   }
   
+  /*
+  setpoint.vel = v;
+  setpoint.pos_x = teb_.Pose(4).x();
+  setpoint.pos_y = teb_.Pose(4).y();
+  setpoint.yaw_angle = teb_.Pose(4).theta();
+  */
+
   return true;
 }
 
