@@ -828,7 +828,7 @@ bool TebOptimalPlanner::getVelocityCommand(double& v, double& omega) const
   return true;
 }
 
-bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint) const
+bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint &setpoint) const
 { 
   if (teb_.sizePoses() < 2) {
     ROS_ERROR("TebOptimalPlanner::getSetpointCommand(): The trajectory contains less than 2 poses. Make sure to init and optimize/plan the trajectory fist.");
@@ -839,11 +839,9 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
   const double lookahead_dist = 0.5;
   ROS_INFO_STREAM("teb size = " << teb_.sizePoses());
   
-  double dist = 0.0;
   double sum_dt = 0.0;
   uint8_t pre_vel_sign = 0;
   for (std::size_t i=1; i < teb_.sizePoses()-1; ++i) {
-    dist += ( teb_.Pose(i).position() - teb_.Pose(i-1).position() ).norm();
     double dt = teb_.TimeDiff(i) + teb_.TimeDiff(i-1);
     
     if (dt <= 0) {
@@ -857,8 +855,9 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
     ROS_INFO_STREAM("vel = " << v);
     
     const int vel_sign = g2o::sign(v);
-    if((pre_vel_sign && pre_vel_sign != vel_sign) && dist > 0.08 || dist >= lookahead_dist) {
-        extractVelocity(teb_.Pose(0), teb_.Pose(i), sum_dt, v, omega);
+    double dist = (robot_pose.position() - teb_.Pose(i).position()).norm();
+    if((pre_vel_sign && pre_vel_sign != vel_sign) && dist > 0.15 || dist >= lookahead_dist) {
+        extractVelocity(robot_pose, teb_.Pose(i), sum_dt, v, omega);
         
         setpoint.vel = v;
         setpoint.pos_x = teb_.Pose(i).x();
