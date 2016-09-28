@@ -873,13 +873,6 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
     sum_dt += dt;
   }
   
-  /*
-  setpoint.vel = v;
-  setpoint.pos_x = teb_.Pose(4).x();
-  setpoint.pos_y = teb_.Pose(4).y();
-  setpoint.yaw_angle = teb_.Pose(4).theta();
-  */
-
   return true;
 }
 
