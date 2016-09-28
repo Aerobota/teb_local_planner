@@ -388,7 +388,7 @@ bool TebLocalPlannerROS::computeVelocityCommands(geometry_msgs::Twist& cmd_vel)
   visualization_->publishGlobalPlan(global_plan_);
   
   rr_base_car_msgs::SetpointStamped setpoint_stamped;
-  if (!planner_->getSetpointCommand(setpoint_stamped.setpoint)) {
+  if (!planner_->getSetpointCommand(robot_pose_, setpoint_stamped.setpoint)) {
     planner_->clearPlanner();
     ROS_WARN("TebLocalPlannerROS: setpoint command invalid. Resetting planner...");
     return false;
