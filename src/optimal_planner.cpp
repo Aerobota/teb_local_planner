@@ -836,7 +836,7 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
     return false;
   }
     
-  const double lookahead_dist = 0.6;
+  const double lookahead_dist = 0.5;
   ROS_INFO_STREAM("teb size = " << teb_.sizePoses());
   
   double dist = 0.0;
@@ -857,7 +857,7 @@ bool TebOptimalPlanner::getSetpointCommand(rr_base_car_msgs::Setpoint &setpoint)
     ROS_INFO_STREAM("vel = " << v);
     
     const int vel_sign = g2o::sign(v);
-    if((pre_vel_sign && pre_vel_sign != vel_sign) && dist > 1.0 || dist >= lookahead_dist) {
+    if((pre_vel_sign && pre_vel_sign != vel_sign) && dist > 0.08 || dist >= lookahead_dist) {
         extractVelocity(teb_.Pose(0), teb_.Pose(i), sum_dt, v, omega);
         
         setpoint.vel = v;
