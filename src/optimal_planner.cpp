@@ -871,6 +871,14 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_ca
     
     sum_dt += dt;
   }
+
+  double v, tmp;
+  extractVelocity(robot_pose, teb_.Pose(teb_.sizePoses()-1), sum_dt, v, tmp);
+  ROS_INFO("publish final setpoint");
+  setpoint.vel = v;
+  setpoint.pos_x = teb_.Pose(teb_.sizePoses()-1).x();
+  setpoint.pos_y = teb_.Pose(teb_.sizePoses()-1).y();
+  setpoint.yaw_angle = teb_.Pose(teb_.sizePoses()-1).theta();
   
   return true;
 }
