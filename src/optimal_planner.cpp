@@ -852,7 +852,6 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_ca
     
     double v, omega;
     extractVelocity(teb_.Pose(i-1), teb_.Pose(i), dt, v, omega);
-    ROS_INFO_STREAM("vel = " << v);
     
     const int vel_sign = g2o::sign(v);
     double dist = (robot_pose.position() - teb_.Pose(i).position()).norm();
@@ -863,7 +862,6 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_ca
         setpoint.pos_x = teb_.Pose(i).x();
         setpoint.pos_y = teb_.Pose(i).y();
         setpoint.yaw_angle = teb_.Pose(i).theta();
-        ROS_INFO("publish setpoint");
         return true;
     }
     
@@ -874,7 +872,6 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_ca
 
   double v, tmp;
   extractVelocity(robot_pose, teb_.Pose(teb_.sizePoses()-1), sum_dt, v, tmp);
-  ROS_INFO("publish final setpoint");
   setpoint.vel = v;
   setpoint.pos_x = teb_.Pose(teb_.sizePoses()-1).x();
   setpoint.pos_y = teb_.Pose(teb_.sizePoses()-1).y();
