@@ -837,7 +837,6 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_ca
   }
     
   const double lookahead_dist = 0.6;
-  ROS_INFO_STREAM("teb size = " << teb_.sizePoses());
   
   double sum_dt = 0.0;
   uint8_t pre_vel_sign = 0;
