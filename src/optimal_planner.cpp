@@ -828,7 +828,7 @@ bool TebOptimalPlanner::getVelocityCommand(double& v, double& omega) const
   return true;
 }
 
-bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint &setpoint) const
+bool TebOptimalPlanner::getSetpointCommand(const PoseSE2& robot_pose, rr_base_car_msgs::Setpoint& setpoint) const
 { 
   if (teb_.sizePoses() < 2) {
     ROS_ERROR("TebOptimalPlanner::getSetpointCommand(): The trajectory contains less than 2 poses. Make sure to init and optimize/plan the trajectory fist.");
@@ -836,10 +836,11 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_ca
     return false;
   }
   
-  double t = 0.0;
-  int pre_vel_sign = 0;
-  for(int i=1; i < teb_.sizePoses(); ++i) {
-    double dt = teb_.TimeDiff(i-1);
+  double sum_dt = 0.0;
+  uint8_t pre_vel_sign = 0;
+  for (std::size_t i=1; i < teb_.sizePoses()-1; ++i) {
+    double dt = teb_.TimeDiff(i) + teb_.TimeDiff(i-1);
+    
     if (dt <= 0) {
       ROS_ERROR("TebOptimalPlanner::getSetpointCommand() - timediff<=0 is invalid!");
       setpoint = rr_base_car_msgs::Setpoint();
@@ -848,20 +849,33 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_ca
     
     double v, omega;
     extractVelocity(teb_.Pose(i-1), teb_.Pose(i), dt, v, omega);
-    ROS_INFO_STREAM("vel = " << v);
     
     const int vel_sign = g2o::sign(v);
-    if(pre_vel_sign && pre_vel_sign != vel_sign) {
-      setpoint.vel = v;
-      setpoint.pos_x = teb_.Pose(i).x();
-      setpoint.pos_y = teb_.Pose(i).y();
-      setpoint.yaw_angle = teb_.Pose(i).theta();
-
-      return true;
+    double dist = (robot_pose.position() - teb_.Pose(i).position()).norm();
+    if((pre_vel_sign && pre_vel_sign != vel_sign) && 
+        dist > cfg_->trajectory.min_local_plan_lookahead_dist || 
+        dist >= cfg_->trajectory.max_local_plan_lookahead_dist) {
+        
+        extractVelocity(robot_pose, teb_.Pose(i), sum_dt, v, omega);
+        
+        setpoint.vel = v;
+        setpoint.pos_x = teb_.Pose(i).x();
+        setpoint.pos_y = teb_.Pose(i).y();
+        setpoint.yaw_angle = teb_.Pose(i).theta();
+        return true;
     }
-
+    
     pre_vel_sign = vel_sign;
+    
+    sum_dt += dt;
   }
+
+  double v, tmp;
+  extractVelocity(robot_pose, teb_.Pose(teb_.sizePoses()-1), sum_dt, v, tmp);
+  setpoint.vel = v;
+  setpoint.pos_x = teb_.Pose(teb_.sizePoses()-1).x();
+  setpoint.pos_y = teb_.Pose(teb_.sizePoses()-1).y();
+  setpoint.yaw_angle = teb_.Pose(teb_.sizePoses()-1).theta();
   
   return true;
 }

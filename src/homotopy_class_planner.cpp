@@ -161,7 +161,7 @@ bool HomotopyClassPlanner::getVelocityCommand(double& v, double& omega) const
   return best_teb->getVelocityCommand(v, omega); 
 }
 
-bool HomotopyClassPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint &setpoint) const
+bool HomotopyClassPlanner::getSetpointCommand(const PoseSE2& robot_pose, rr_base_car_msgs::Setpoint& setpoint) const
 {
   TebOptimalPlannerConstPtr best_teb = bestTeb();
   if (!best_teb)

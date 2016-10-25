@@ -220,7 +220,7 @@ public:
    */
   virtual bool getVelocityCommand(double& v, double& omega) const;
   
-  virtual bool getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint &setpoint) const;
+  virtual bool getSetpointCommand(const PoseSE2& robot_pose, rr_base_car_msgs::Setpoint& setpoint) const;
 
   /**
    * @brief Access current best trajectory candidate (that relates to the "best" homotopy class).
