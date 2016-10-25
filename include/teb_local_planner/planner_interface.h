@@ -133,7 +133,7 @@ public:
    */
   virtual bool getVelocityCommand(double& v, double& omega) const = 0;
 
-  virtual bool getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint& setpoint) const = 0;
+  virtual bool getSetpointCommand(const PoseSE2& robot_pose, rr_base_car_msgs::Setpoint& setpoint) const = 0;
   
   //@}
   

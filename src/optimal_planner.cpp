@@ -828,7 +828,7 @@ bool TebOptimalPlanner::getVelocityCommand(double& v, double& omega) const
   return true;
 }
 
-bool TebOptimalPlanner::getSetpointCommand(const PoseSE2 &robot_pose, rr_base_car_msgs::Setpoint &setpoint) const
+bool TebOptimalPlanner::getSetpointCommand(const PoseSE2& robot_pose, rr_base_car_msgs::Setpoint& setpoint) const
 { 
   if (teb_.sizePoses() < 2) {
     ROS_ERROR("TebOptimalPlanner::getSetpointCommand(): The trajectory contains less than 2 poses. Make sure to init and optimize/plan the trajectory fist.");
