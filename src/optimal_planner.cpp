@@ -852,7 +852,10 @@ bool TebOptimalPlanner::getSetpointCommand(const PoseSE2& robot_pose, rr_base_ca
     
     const int vel_sign = g2o::sign(v);
     double dist = (robot_pose.position() - teb_.Pose(i).position()).norm();
-    if((pre_vel_sign && pre_vel_sign != vel_sign) && dist > cfg_->trajectory.min_local_plan_lookahead_dist || dist >= cfg_->trajectory.max_local_plan_lookahead_dist) {
+    if((pre_vel_sign && pre_vel_sign != vel_sign) && 
+        dist > cfg_->trajectory.min_local_plan_lookahead_dist || 
+        dist >= cfg_->trajectory.max_local_plan_lookahead_dist) {
+        
         extractVelocity(robot_pose, teb_.Pose(i), sum_dt, v, omega);
         
         setpoint.vel = v;
